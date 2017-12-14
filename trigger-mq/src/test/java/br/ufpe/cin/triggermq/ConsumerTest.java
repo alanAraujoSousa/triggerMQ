@@ -16,10 +16,17 @@ import br.ufpe.cin.triggermq.distribution.QueueServer;
  */
 public class ConsumerTest {
 
-	private static final String AWS_AUTO_SCALING_SERVICE = "Aws Auto-scaling Service";
+
+	private static final String CALLER_SERVICE = "Aws Auto-scaling Service";
+
+	private static final String KEY1 = "car";
+	private static final String KEY2 = "bicycle";
+	private static final String KEY3 = "person";
+	private static final String KEY4 = "dog";
+	
 	private ExecutorService executor = Executors.newFixedThreadPool(6);
 
-	private int machinesMonitored;
+	private int keysMonitored;
 	private int bind1;
 	private int bind2;
 	private int bind3;
@@ -38,7 +45,7 @@ public class ConsumerTest {
 	@After
 	public void stop() {
 		executor.shutdown();
-		System.out.println("\n\n End test, total machines monitored: " + machinesMonitored + " \n bind to consumer 1: "
+		System.out.println("\n\n End test, total machines monitored: " + keysMonitored + " \n bind to consumer 1: "
 				+ bind1 + " \n bind to consumer 2: " + bind2 + " \n bind to consumer 3: " + bind3
 				+ " \n bind to consumer 4: " + bind4);
 	}
@@ -73,17 +80,17 @@ public class ConsumerTest {
 	private void startProducer() throws Exception {
 		executor.submit(new Thread(() -> {
 			try {
-				machinesMonitored = 0;
+				keysMonitored = 0;
 				while (true) {
-					QueueManagerProxy awsAutoScalingService = new QueueManagerProxy(AWS_AUTO_SCALING_SERVICE);
+					QueueManagerProxy awsAutoScalingService = new QueueManagerProxy(CALLER_SERVICE);
 
 					Random r = new Random();
-					String msg = "machine: " + machinesMonitored + ", cpu: " + r.nextInt(101) + ", memory: "
-							+ r.nextInt(101) + ", disk: " + r.nextInt(101);
+					String msg = KEY1 + ": " + keysMonitored + ", " + KEY2 + ": " + r.nextInt(101)/* + ", " + KEY3 + ": "
+							+ r.nextInt(101) + ", " + KEY4 + ": " + r.nextInt(101)*/;
 
 					awsAutoScalingService.send(msg);
 
-					machinesMonitored++;
+					keysMonitored++;
 				}
 			} catch (Throwable e) {
 				e.printStackTrace();
@@ -102,9 +109,9 @@ public class ConsumerTest {
 		executor.submit(new Thread(() -> {
 			try {
 				while (true) {
-					QueueManagerProxy qP1 = new QueueManagerProxy(AWS_AUTO_SCALING_SERVICE);
+					QueueManagerProxy qP1 = new QueueManagerProxy(CALLER_SERVICE);
 
-					String bindingKey = "cpu > 70 and disk < 20";
+					String bindingKey = KEY3 + " > 70 and " + KEY4 + " < 20";
 					String msg = qP1.receive(bindingKey);
 
 					if (!msg.isEmpty()) {
@@ -129,9 +136,9 @@ public class ConsumerTest {
 		executor.submit(new Thread(() -> {
 			try {
 				while (true) {
-					QueueManagerProxy qP1 = new QueueManagerProxy(AWS_AUTO_SCALING_SERVICE);
+					QueueManagerProxy qP1 = new QueueManagerProxy(CALLER_SERVICE);
 
-					String bindingKey = "cpu < 20 and memory < 20";
+					String bindingKey = KEY2 + " < 20 and " + KEY1 + " < 20";
 					String msg = qP1.receive(bindingKey);
 
 					if (!msg.isEmpty()) {
@@ -156,9 +163,9 @@ public class ConsumerTest {
 		executor.submit(new Thread(() -> {
 			try {
 				while (true) {
-					QueueManagerProxy qP1 = new QueueManagerProxy(AWS_AUTO_SCALING_SERVICE);
+					QueueManagerProxy qP1 = new QueueManagerProxy(CALLER_SERVICE);
 
-					String bindingKey = "cpu == 20";
+					String bindingKey = KEY3 + " == 20";
 					String msg = qP1.receive(bindingKey);
 
 					if (!msg.isEmpty()) {
@@ -183,9 +190,9 @@ public class ConsumerTest {
 		executor.submit(new Thread(() -> {
 			try {
 				while (true) {
-					QueueManagerProxy qP1 = new QueueManagerProxy(AWS_AUTO_SCALING_SERVICE);
+					QueueManagerProxy qP1 = new QueueManagerProxy(CALLER_SERVICE);
 
-					String bindingKey = "cpu != 90 and memory < 10";
+					String bindingKey = KEY3 + " != 90 and " + KEY2 + " < 10";
 					String msg = qP1.receive(bindingKey);
 
 					if (!msg.isEmpty()) {

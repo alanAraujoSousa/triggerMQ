@@ -8,16 +8,23 @@ import br.ufpe.cin.triggermq.infrastructure.ClientRequestHandler;
 public class QueueManagerProxy implements IQueueManager {
 
 	private String queueName = null;
+	private String ip = null;
+
+	public QueueManagerProxy(String ip, String queueName) {
+		this.setIp(ip);
+		this.setQueueName(queueName);
+	}
 
 	public QueueManagerProxy(String queueName) {
 		this.setQueueName(queueName);
 	}
+	
 
 	@Override
 	public void send(String m) throws IOException, InterruptedException {
 
 		// configure
-		ClientRequestHandler crh = new ClientRequestHandler("localhost", 1313, false);
+		ClientRequestHandler crh = new ClientRequestHandler(this.getIp(), 1313, false);
 		Marshaller marshaller = new Marshaller();
 		RequestPacket packet = new RequestPacket();
 		Message message = new Message();
@@ -53,7 +60,7 @@ public class QueueManagerProxy implements IQueueManager {
 	@Override
 	public String receive(String bindingKey) throws IOException, InterruptedException, ClassNotFoundException {
 
-		ClientRequestHandler crh = new ClientRequestHandler("localhost", 1313, true);
+		ClientRequestHandler crh = new ClientRequestHandler(this.getIp(), 1313, true);
 		Marshaller marshaller = new Marshaller();
 		
 		RequestPacket requestPacket = new RequestPacket();
@@ -99,5 +106,13 @@ public class QueueManagerProxy implements IQueueManager {
 	public QueueManagerProxy setQueueName(String queueName) {
 		this.queueName = queueName;
 		return this;
+	}
+
+	public String getIp() {
+		return ip == null ? "localhost" : ip;
+	}
+
+	public void setIp(String ip) {
+		this.ip = ip;
 	}
 }
